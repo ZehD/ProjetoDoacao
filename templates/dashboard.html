@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Dashboard de Doações</h1>
+    <a href="{{ url_for('add_donation') }}" class="btn btn-primary">
+        ➕ Nova Doação
+    </a>
+</div>
+
+{% if donations %}
+    <div class="donations-grid">
+        {% for donation in donations %}
+        <div class="donation-card">
+            <div class="donation-header">
+                <div class="donor-info">
+                    <span class="donor-name">👤 {{ donation.user.username }}</span>
+                    <span class="donation-date">{{ donation.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                </div>
+                <span class="status-badge status-{{ donation.status }}">{{ donation.status }}</span>
+            </div>
+            
+            <div class="donation-items">
+                <h3>Itens doados:</h3>
+                <ul class="items-list">
+                    {% for item in donation.items %}
+                    <li class="item">
+                        <span class="item-name">{{ item.item_name }}</span>
+                        <span class="item-quantity">{{ item.quantity }} {{ item.unit }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h2>Nenhuma doação cadastrada ainda</h2>
+        <p>Seja o primeiro a fazer uma doação!</p>
+        <a href="{{ url_for('add_donation') }}" class="btn btn-primary">Criar Primeira Doação</a>
+    </div>
+{% endif %}
+{% endblock %}

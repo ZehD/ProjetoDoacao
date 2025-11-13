@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Nova Doação - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Nova Doação</h1>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Voltar</a>
+</div>
+
+<div class="donation-form-container">
+    <form id="donation-form" class="donation-form">
+        <div id="items-container">
+            <!-- Itens serão adicionados dinamicamente aqui -->
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="add-item-btn" class="btn btn-outline">
+                ➕ Adicionar Item
+            </button>
+            <div class="submit-actions">
+                <button type="button" onclick="window.location.href='{{ url_for('dashboard') }}'" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Salvar Doação
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let itemCount = 0;
+
+    // Unidades disponíveis
+    const units = [
+        { value: 'litro', label: 'Litro' },
+        { value: 'kg', label: 'Quilograma' },
+        { value: 'unidade', label: 'Unidade' },
+        { value: 'pacote', label: 'Pacote' },
+        { value: 'caixa', label: 'Caixa' },
+        { value: 'garrafa', label: 'Garrafa' }
+    ];
+
+    // Adicionar novo item
+    function addItem() {
+        itemCount++;
+        const container = document.getElementById('items-container');
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'donation-item';
+        itemDiv.id = `item-${itemCount}`;
+        
+        itemDiv.innerHTML = `
+            <div class="item-header">
+                <h3>Item ${itemCount}</h3>
+                <button type="button" class="btn-remove" onclick="removeItem(${itemCount})">🗑️ Remover</button>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome do Item *</label>
+                    <input type="text" name="item_name_${itemCount}" class="form-control" 
+                           placeholder="Ex: Leite, Arroz, Feijão..." required>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade *</label>
+                    <input type="number" name="quantity_${itemCount}" class="form-control" 
+                           step="0.1" min="0.1" placeholder="Ex: 1, 2.5, 10" required>
+                </div>
+                <div class="form-group">
+                    <label>Unidade *</label>
+                    <select name="unit_${itemCount}" class="form-control" required>
+                        ${units.map(unit => 
+                            `<option value="${unit.value}">${unit.label}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(itemDiv);
+    }
+
+    // Remover item
+    function removeItem(id) {
+        const item = document.getElementById(`item-${id}`);
+        if (item) {
+            item.remove();
+            // Renumerar itens
+            updateItemNumbers();
+        }
+    }
+
+    // Renumerar itens
+    function updateItemNumbers() {
+        const items = document.querySelectorAll('.donation-item');
+        items.forEach((item, index) => {
+            const header = item.querySelector('.item-header h3');
+            if (header) {
+                header.textContent = `Item ${index + 1}`;
+            }
+        });
+    }
+
+    // Adicionar primeiro item ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        addItem();
+    });
+
+    // Botão adicionar item
+    document.getElementById('add-item-btn').addEventListener('click', addItem);
+
+    // Submeter formulário
+    document.getElementById('donation-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const items = [];
+        const itemElements = document.querySelectorAll('.donation-item');
+        
+        if (itemElements.length === 0) {
+            alert('Adicione pelo menos um item à doação.');
+            return;
+        }
+        
+        itemElements.forEach(item => {
+            const itemName = item.querySelector('input[name^="item_name"]').value.trim();
+            const quantity = item.querySelector('input[name^="quantity"]').value;
+            const unit = item.querySelector('select[name^="unit"]').value;
+            
+            if (itemName && quantity && unit) {
+                items.push({
+                    item_name: itemName,
+                    quantity: parseFloat(quantity),
+                    unit: unit
+                });
+            }
+        });
+        
+        if (items.length === 0) {
+            alert('Preencha todos os campos dos itens.');
+            return;
+        }
+        
+        try {
+            const response = await fetch('{{ url_for("add_donation") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ items: items })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message || 'Erro ao salvar doação.');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao salvar doação. Tente novamente.');
+        }
+    });
+</script>
+{% endblock %}

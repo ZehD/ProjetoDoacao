@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Sistema de Doações{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-tabs">
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Cadastrar</button>
+    </div>
+
+    <!-- Formulário de Login -->
+    <div class="tab-content active" id="login-tab">
+        <div class="auth-card">
+            <h2>Entrar</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                {{ login_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ login_form.username.label(class="form-label") }}
+                    {{ login_form.username(class="form-control", placeholder="Digite seu usuário") }}
+                    {% if login_form.username.errors %}
+                        <div class="error-message">
+                            {% for error in login_form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ login_form.password.label(class="form-label") }}
+                    {{ login_form.password(class="form-control", placeholder="Digite sua senha") }}
+                    {% if login_form.password.errors %}
+                        <div class="error-message">
+                            {% for error in login_form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" name="login_submit" class="btn btn-primary btn-block">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Formulário de Registro -->
+    <div class="tab-content" id="register-tab">
+        <div class="auth-card">
+            <h2>Cadastrar</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                {{ register_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ register_form.username.label(class="form-label") }}
+                    {{ register_form.username(class="form-control", placeholder="Escolha um usuário") }}
+                    {% if register_form.username.errors %}
+                        <div class="error-message">
+                            {% for error in register_form.username.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ register_form.email.label(class="form-label") }}
+                    {{ register_form.email(class="form-control", placeholder="Digite seu email") }}
+                    {% if register_form.email.errors %}
+                        <div class="error-message">
+                            {% for error in register_form.email.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ register_form.password.label(class="form-label") }}
+                    {{ register_form.password(class="form-control", placeholder="Digite sua senha") }}
+                    {% if register_form.password.errors %}
+                        <div class="error-message">
+                            {% for error in register_form.password.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    {{ register_form.password_confirm.label(class="form-label") }}
+                    {{ register_form.password_confirm(class="form-control", placeholder="Confirme sua senha") }}
+                    {% if register_form.password_confirm.errors %}
+                        <div class="error-message">
+                            {% for error in register_form.password_confirm.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" name="register_submit" class="btn btn-primary btn-block">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Alternar entre abas de login e registro
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            
+            // Atualizar botões
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Atualizar conteúdo
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+        });
+    });
+</script>
+{% endblock %}
