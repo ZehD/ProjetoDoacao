@@ -149,9 +149,6 @@ def init_db():
             traceback.print_exc()
             raise
 
-# Inicializar banco de dados ao importar o módulo
-init_db()
-
 if __name__ == '__main__':
     # Configuração para desenvolvimento local
     port = int(os.environ.get('PORT', 5000))
