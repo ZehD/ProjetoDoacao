@@ -29,6 +29,9 @@ EXPOSE 5000
 # Variável de ambiente para porta
 ENV PORT=5000
 
-# Comando para iniciar a aplicação com gunicorn
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+# Script de inicialização
+RUN echo '#!/bin/bash\nset -e\npython -c "from app import init_db; init_db()"\necho "Iniciando gunicorn..."\nexec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app' > /app/start.sh && chmod +x /app/start.sh
+
+# Comando para iniciar a aplicação
+CMD ["/bin/bash", "/app/start.sh"]
 

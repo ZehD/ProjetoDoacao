@@ -137,9 +137,20 @@ def add_donation():
     return render_template('add_donation.html')
 
 
-# Inicializar banco de dados
-with app.app_context():
-    db.create_all()
+def init_db():
+    """Inicializa o banco de dados"""
+    with app.app_context():
+        try:
+            db.create_all()
+            print("✅ Banco de dados inicializado com sucesso!")
+        except Exception as e:
+            print(f"❌ Erro ao inicializar banco de dados: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+
+# Inicializar banco de dados ao importar o módulo
+init_db()
 
 if __name__ == '__main__':
     # Configuração para desenvolvimento local
