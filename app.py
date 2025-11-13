@@ -8,12 +8,21 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Configurar caminho do banco de dados
-basedir = os.path.abspath(os.path.dirname(__file__))
-database_path = os.path.join(basedir, 'instance', 'database.db')
-# Garantir que o diretório instance existe
-os.makedirs(os.path.dirname(database_path), exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{database_path}')
+# Configurar banco de dados
+# Railway fornece DATABASE_URL com PostgreSQL, caso contrário usa SQLite local
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Railway às vezes fornece postgres:// mas SQLAlchemy precisa postgresql://
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback para SQLite em desenvolvimento local
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    database_path = os.path.join(basedir, 'instance', 'database.db')
+    os.makedirs(os.path.dirname(database_path), exist_ok=True)
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{database_path}'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar extensões
@@ -128,7 +137,12 @@ def add_donation():
     return render_template('add_donation.html')
 
 
+# Inicializar banco de dados
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    # Configuração para desenvolvimento local
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)
